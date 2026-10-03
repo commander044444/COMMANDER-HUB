@@ -108,7 +108,7 @@ const AssistantChat = {
       help: 'بگو کجا گیر کردی تا راهنمایی کنم.',
       nav: 'حتماً، الان می‌برم.',
       searchAsk: 'می‌خوای خلاصه کنم یا ببرمت Google؟',
-      noWeb: 'در این محیط جست‌وجوی وب واقعی ندارم؛ می‌تونم Google را برات باز کنم یا داخل HUB راهنمایی کنم.',
+      noWeb: 'نمی‌تونم صفحهٔ سایت‌ها را این‌جا باز کنم. معمولاً چند منبع در Google درباره‌اش هستن؛ برای دقت برو به خود سایت.',
       location: 'موقعیت جعلی نمی‌سازم. اگر اجازهٔ موقعیت بدهی، برای آب‌وهوا استفاده می‌شود؛ برای مکان‌های نزدیک Google Maps را باز می‌کنم.',
       unknown: 'متوجه نشدم. می‌تونی ساده‌تر بگی یا از دکمه‌های زیر استفاده کنی.'
     };
@@ -119,7 +119,7 @@ const AssistantChat = {
       help: 'Tell me where you’re stuck and I’ll guide you.',
       nav: 'Sure — opening that now.',
       searchAsk: 'Summarize here or open Google?',
-      noWeb: 'No live web search here. I can open Google or guide you inside HUB.',
+      noWeb: 'I can’t open live pages here. Google usually lists real sources — read them on the site itself.',
       location: 'I won’t invent places. Grant location for weather, or I’ll open Google Maps for a query.',
       unknown: 'Didn’t catch that. Try simpler wording or use the suggestions.'
     };
@@ -429,19 +429,36 @@ const AssistantChat = {
       return;
     }
 
-    // always summarize — honest: no fake web crawl
+    // always summarize — honest: no fake crawl, guide user to real sites
     this.hideTyping();
     this.pushAssistant(this.lang() === 'fa' ? `🔎 Search:\n«${q}»` : `🔎 Search:\n“${q}”`, { animate: false });
     this.showTyping();
-    await this.wait(600);
+    await this.wait(500);
     this.hideTyping();
-    this.pushAssistant(this.pick('noWeb'), {
+    const summary = this.buildHonestSummary(q);
+    this.pushAssistant(summary, {
       animate: true,
       suggestions: [
-        { label: '🌐 Google', action: 'googleq:' + encodeURIComponent(q) },
-        { label: this.lang() === 'fa' ? '🔎 جست‌وجو در HUB' : '🔎 Search HUB', action: 'hubsearch:' + encodeURIComponent(q) }
+        { label: this.lang() === 'fa' ? '🌐 باز کردن Google' : '🌐 Open Google', action: 'googleq:' + encodeURIComponent(q) },
+        { label: this.lang() === 'fa' ? '🔎 داخل HUB' : '🔎 Inside HUB', action: 'hubsearch:' + encodeURIComponent(q) }
       ]
     });
+  },
+
+  buildHonestSummary(q) {
+    const fa = this.lang() === 'fa';
+    if (fa) {
+      return (
+        `دربارهٔ «${q}» معمولاً سایت‌های آموزشی، مقاله‌ها و انجمن‌ها در نتایج جست‌وجو حرف می‌زنن.\n\n` +
+        `من این‌جا نمی‌تونم محتوای زندهٔ آن سایت‌ها را بخوانم یا خلاصهٔ قطعی بسازم.\n\n` +
+        `برای اطلاعات دقیق‌تر برو سراغ خود نتایج (دکمه Google) و از صفحهٔ اصلی منبع بخوان — نه از نقل‌قول غیررسمی.`
+      );
+    }
+    return (
+      `For “${q}”, educational sites, articles, and forums usually show up in search results.\n\n` +
+      `I can’t fetch live page content here or invent a definitive summary.\n\n` +
+      `For accurate details, open Google and read the original pages yourself.`
+    );
   },
 
   runChip(act) {
