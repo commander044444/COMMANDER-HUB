@@ -1,0 +1,165 @@
+/* COMMANDER HUB - Responsive Styles */
+
+@media (max-width: 1024px) {
+  .widget[data-size="large"] {
+    grid-column: span 1;
+  }
+  
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 280px;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .sidebar {
+    transform: translateX(calc(-1 * var(--sidebar-width)));
+    box-shadow: var(--shadow-lg);
+  }
+
+  [dir="rtl"] .sidebar {
+    transform: translateX(var(--sidebar-width));
+  }
+
+  .sidebar.open {
+    transform: translateX(0) !important;
+  }
+
+  .main-wrapper {
+    margin-inline-start: 0 !important;
+  }
+
+  .search-box input {
+    width: 160px;
+  }
+
+  .search-kbd {
+    display: none;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .main-content {
+    padding: 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .view-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .view-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .clock-time {
+    font-size: 2.2rem;
+  }
+
+  .portfolio-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .notes-list {
+    grid-template-columns: 1fr;
+  }
+
+  .sys-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .notifications-panel {
+    width: calc(100% - 2rem);
+    inset-inline-end: 1rem;
+    inset-inline-start: 1rem;
+  }
+
+  .modal {
+    max-width: 100%;
+  }
+
+  .command-box {
+    width: 95%;
+  }
+
+  .topbar {
+    padding: 0 0.75rem;
+  }
+
+  .topbar-right {
+    gap: 0.25rem;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-box input {
+    width: 120px;
+    font-size: 0.85rem;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .music-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-links {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .calendar-day {
+    font-size: 0.8rem;
+  }
+
+  .lock-content {
+    padding: 1.5rem;
+  }
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  display: none;
+}
+
+.sidebar-overlay.visible {
+  display: block;
+}
+
+/* Print */
+@media print {
+  .sidebar, .topbar, .btn, .widget-actions {
+    display: none !important;
+  }
+  .main-wrapper {
+    margin: 0 !important;
+  }
+}
