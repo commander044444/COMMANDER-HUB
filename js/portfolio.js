@@ -18,6 +18,9 @@ const Portfolio = {
     const totalPnl = totalValue - totalCost;
     const pnlPct = totalCost ? ((totalPnl / totalCost) * 100) : 0;
 
+    const tomanTotal = Crypto.toToman ? Crypto.toToman(totalValue) : '—';
+    const tomanPnl = Crypto.toToman ? Crypto.toToman(Math.abs(totalPnl)) : '—';
+
     let html = `
       <div class="view-header">
         <h1>${t('portfolio.title')}</h1>
@@ -28,10 +31,12 @@ const Portfolio = {
       <div class="portfolio-summary">
         <div class="portfolio-stat">
           <div class="portfolio-stat-value">$${totalValue.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.2rem">${tomanTotal} تومان</div>
           <div class="portfolio-stat-label">${t('portfolio.total')}</div>
         </div>
         <div class="portfolio-stat ${totalPnl >= 0 ? 'profit' : 'loss'}">
           <div class="portfolio-stat-value">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toLocaleString('en-US', {maximumFractionDigits: 2})} (${pnlPct.toFixed(1)}%)</div>
+          <div style="font-size:0.85rem;margin-top:0.2rem">${totalPnl >= 0 ? '+' : '−'}${tomanPnl} تومان</div>
           <div class="portfolio-stat-label">${t('portfolio.pnl')}</div>
         </div>
       </div>
@@ -42,6 +47,7 @@ const Portfolio = {
     } else {
       html += '<div class="portfolio-assets">';
       items.forEach(item => {
+        const tomanVal = Crypto.toToman ? Crypto.toToman(item.value) : '—';
         html += `
           <div class="portfolio-asset">
             <div>
@@ -50,6 +56,7 @@ const Portfolio = {
             </div>
             <div style="text-align:end">
               <div style="font-weight:600">$${item.value.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
+              <div style="font-size:0.75rem;color:var(--text-secondary)">${tomanVal} تومان</div>
               <div style="font-size:0.8rem;color:${item.pnl >= 0 ? 'var(--success)' : 'var(--danger)'}">
                 ${item.pnl >= 0 ? '+' : ''}$${item.pnl.toLocaleString('en-US', {maximumFractionDigits: 2})}
               </div>
@@ -73,11 +80,13 @@ const Portfolio = {
         const price = Crypto.getPrice(p.coinId) || p.buyPrice || 0;
         total += price * p.amount;
       });
+      const toman = Crypto.toToman ? Crypto.toToman(total) : '—';
       el.innerHTML = `
         <div style="text-align:center;padding:1rem">
           <div style="font-size:1.6rem;font-weight:700">$${total.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
-          <div style="font-size:0.85rem;color:var(--text-muted)">${t('portfolio.total')}</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">${AppState.portfolio.length} assets</div>
+          <div style="font-size:0.9rem;color:var(--text-secondary)">${toman} تومان</div>
+          <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.35rem">${t('portfolio.total')}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.35rem">${AppState.portfolio.length} دارایی</div>
         </div>`;
     } catch {
       el.innerHTML = `<div class="empty-state">${t('portfolio.empty')}</div>`;

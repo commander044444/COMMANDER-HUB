@@ -1,4 +1,4 @@
-/* COMMANDER HUB - Weather (Open-Meteo, no key) */
+/* COMMANDER HUB - آب و هوا (Open-Meteo + توضیحات فارسی) */
 const Weather = {
   data: null,
   location: null,
@@ -11,7 +11,7 @@ const Weather = {
   },
 
   async geocode(city) {
-    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=${AppState.language === 'fa' ? 'fa' : 'en'}`;
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=fa`;
     const res = await fetch(url);
     if (!res.ok) throw new Error('Geocode error');
     const data = await res.json();
@@ -32,15 +32,34 @@ const Weather = {
 
   weatherCodeToText(code) {
     const map = {
-      0: 'Clear', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-      45: 'Fog', 48: 'Depositing rime fog',
-      51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
-      61: 'Slight rain', 63: 'Rain', 65: 'Heavy rain',
-      71: 'Slight snow', 73: 'Snow', 75: 'Heavy snow',
-      80: 'Rain showers', 81: 'Rain showers', 82: 'Violent rain showers',
-      95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with hail'
+      0: 'آفتابی و صاف',
+      1: 'عمدتاً صاف',
+      2: 'نیمه‌ابری',
+      3: 'ابری',
+      45: 'مه',
+      48: 'مه یخ‌زده',
+      51: 'نم‌نم باران خفیف',
+      53: 'نم‌نم باران',
+      55: 'نم‌نم باران شدید',
+      61: 'باران خفیف',
+      63: 'باران',
+      65: 'باران شدید',
+      66: 'باران یخ‌زده خفیف',
+      67: 'باران یخ‌زده',
+      71: 'برف خفیف',
+      73: 'برف',
+      75: 'برف شدید',
+      77: 'دانه‌های برف',
+      80: 'رگبار خفیف',
+      81: 'رگبار',
+      82: 'رگبار شدید',
+      85: 'رگبار برف خفیف',
+      86: 'رگبار برف شدید',
+      95: 'رعد و برق',
+      96: 'رعد و برق با تگرگ خفیف',
+      99: 'رعد و برق با تگرگ شدید'
     };
-    return map[code] || 'Unknown';
+    return map[code] || 'نامشخص';
   },
 
   async render(el) {
@@ -49,7 +68,7 @@ const Weather = {
     try {
       let loc = AppState.weatherLocation;
       if (!loc) {
-        loc = { lat: 35.6892, lon: 51.3890, name: 'Tehran' };
+        loc = { lat: 35.6892, lon: 51.3890, name: 'تهران' };
       }
       const data = await this.fetchByCoords(loc.lat, loc.lon);
       this.data = data;
@@ -65,8 +84,8 @@ const Weather = {
           </div>
         </div>
         <div class="weather-details">
-          <span>💧 ${t('weather.humidity')}: ${cur.relative_humidity_2m}%</span>
-          <span>💨 ${t('weather.wind')}: ${Math.round(cur.wind_speed_10m)} km/h</span>
+          <span>💧 ${t('weather.humidity')}: ${cur.relative_humidity_2m}٪</span>
+          <span>💨 ${t('weather.wind')}: ${Math.round(cur.wind_speed_10m)} کیلومتر/ساعت</span>
         </div>
         <div class="weather-location">
           📍 ${escapeHtml(loc.name || '—')}
@@ -85,7 +104,7 @@ const Weather = {
   },
 
   promptLocation() {
-    const city = prompt(t('weather.search'));
+    const city = prompt(t('weather.search') || 'نام شهر را وارد کنید (مثلاً تهران، اصفهان، مشهد)');
     if (!city) return;
     this.setCity(city);
   },
@@ -96,7 +115,7 @@ const Weather = {
       AppState.weatherLocation = {
         lat: geo.latitude,
         lon: geo.longitude,
-        name: geo.name + (geo.country ? ', ' + geo.country : '')
+        name: geo.name + (geo.country ? '، ' + geo.country : '')
       };
       AppState.save();
       this.refresh();
@@ -116,7 +135,7 @@ const Weather = {
         AppState.weatherLocation = {
           lat: pos.coords.latitude,
           lon: pos.coords.longitude,
-          name: 'My Location'
+          name: 'موقعیت من'
         };
         AppState.save();
         this.refresh();
