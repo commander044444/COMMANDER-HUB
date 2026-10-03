@@ -18,7 +18,7 @@ const CryptoMarket = {
   async fetchTomanRate() {
     if (Date.now() - this.rateUpdated < 3600000 && this.tomanRate > 0) return this.tomanRate;
     try {
-      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      const res = await this.fetchTimeout('https://open.er-api.com/v6/latest/USD', 5000);
       if (!res.ok) throw new Error('rate');
       const data = await res.json();
       // IRR ریال است؛ تومان = ریال / ۱۰
@@ -70,6 +70,19 @@ const CryptoMarket = {
     }).filter(c => c.toman_price > 0);
   },
 
+  async fetchTimeout(url, ms) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms || 6000);
+    try {
+      const res = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+      clearTimeout(timer);
+      return res;
+    } catch (e) {
+      clearTimeout(timer);
+      throw e;
+    }
+  },
+
   async fetchNobitex() {
     const urls = [
       'https://api.nobitex.ir/market/stats',
@@ -78,7 +91,7 @@ const CryptoMarket = {
     let lastErr;
     for (const url of urls) {
       try {
-        const res = await fetch(url, { cache: 'no-store' });
+        const res = await this.fetchTimeout(url, 5500);
         if (!res.ok) throw new Error('nobitex ' + res.status);
         const data = await res.json();
         const stats = data.stats || data;
@@ -107,7 +120,10 @@ const CryptoMarket = {
     } catch (e1) {
       try {
         await this.fetchTomanRate();
-        const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h', { cache: 'no-store' });
+        const res = await this.fetchTimeout(
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h',
+          7000
+        );
         if (!res.ok) throw new Error('API error ' + res.status);
         const data = await res.json();
         this.sourceLabel = 'CoinGecko (پشتیبان)';
