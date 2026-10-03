@@ -495,13 +495,14 @@ const AssistantChat = {
     this.hideTyping();
 
     if (summary && summary.extract) {
+      const text = summary.extract.trim();
       let body = fa
-        ? `📝 خلاصه از ${sourceName}:\n${summary.extract}`
-        : `📝 Summary from ${sourceName}:\n${summary.extract}`;
+        ? `📝 خلاصه از ${sourceName}:\n\n${text}`
+        : `📝 Summary from ${sourceName}:\n\n${text}`;
       if (sourceUrl) {
         body += fa
-          ? `\n\nبرای جزئیات دقیق‌تر برو به خود صفحه:\n${sourceUrl}`
-          : `\n\nFor full detail, open the page:\n${sourceUrl}`;
+          ? `\n\nبرای جزئیات بیشتر همین منبع را باز کن.`
+          : `\n\nOpen the source for more detail.`;
       }
       this.pushAssistant(body, {
         animate: true,
@@ -550,7 +551,7 @@ const AssistantChat = {
       const extract = (data.extract || '').trim();
       if (!extract) return null;
       return {
-        extract: extract.slice(0, 900),
+        extract: extract.slice(0, 2200),
         url: (data.content_urls && data.content_urls.desktop && data.content_urls.desktop.page) || data.content_urls?.mobile?.page || `https://${lang}.wikipedia.org/wiki/${title}`,
         lang
       };

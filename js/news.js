@@ -44,7 +44,7 @@ const News = {
   },
 
   async fetchData(force) {
-    if (!force && this.articles.length && Date.now() - this.lastFetch < 60000) {
+    if (!force && this.articles.length && Date.now() - this.lastFetch < 300000) {
       return this.articles;
     }
     if (this.loading) {
@@ -108,11 +108,14 @@ const News = {
     </article>`;
   },
 
-  async renderWidget(el) {
+  async renderWidget(el, soft) {
     if (!el) return;
-    el.innerHTML = `<div class="loading-state">${t('common.loading')}</div>`;
+    const had = this.articles && this.articles.length;
+    if (!soft || !had) {
+      el.innerHTML = `<div class="loading-state">${t('common.loading')}</div>`;
+    }
     try {
-      await this.fetchData(false);
+      await this.fetchData(!!soft && had ? false : false);
       const first = this.articles.slice(0, 3);
       if (!first.length) throw new Error('empty');
       el.innerHTML = `<div class="news-list">${first.map(a => this.card(a)).join('')}</div>
@@ -151,22 +154,35 @@ const News = {
 
   ensureLive() {
     if (this._timer) return;
+    // پس‌زمینه؛ بدون اسپینر — هر ۱۰ دقیقه
     this._timer = setInterval(() => {
       if (document.hidden) return;
-      this.refresh(true);
-    }, 120000); // هر ۲ دقیقه
+      this.softRefresh();
+    }, 600000);
+  },
+
+  async softRefresh() {
+    try {
+      await this.fetchData(true);
+      const host = document.getElementById('news-widget-content');
+      if (host && this.articles.length) {
+        this.renderWidget(host, true);
+      } else if (AppState.currentView === 'news') {
+        const box = document.getElementById('news-full');
+        if (box && this.articles.length) {
+          box.innerHTML = `<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem">منبع: ${escapeHtml(this.sourceName)} · به‌روز: ${new Date(this.lastFetch).toLocaleString('fa-IR')}</p>
+            <div class="news-list">${this.articles.map(a => this.card(a)).join('')}</div>`;
+        }
+      }
+    } catch (e) { /* quiet */ }
   },
 
   async refresh(force) {
-    if (force) {
-      this.lastFetch = 0;
-    }
+    if (force) this.lastFetch = 0;
     if (AppState.currentView === 'news') this.render(document.getElementById('main-content'));
     else if (AppState.currentView === 'dashboard') {
-      const el = document.getElementById('news-widget-content') || document.querySelector('#news-widget-content, [id*="news"]');
-      // re-render news widget only if present
       const host = document.getElementById('news-widget-content');
-      if (host) this.renderWidget(host);
+      if (host) this.renderWidget(host, !force && !!(this.articles && this.articles.length));
       else renderCurrentView();
     }
   }

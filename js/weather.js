@@ -82,9 +82,11 @@ const Weather = {
     return map[code] || 'نامشخص';
   },
 
-  async render(el) {
+  async render(el, soft) {
     if (!el) return;
-    el.innerHTML = `<div class="loading-state">${t('common.loading')}</div>`;
+    if (!soft || !this.data) {
+      el.innerHTML = `<div class="loading-state">${t('common.loading')}</div>`;
+    }
     try {
       let loc = AppState.weatherLocation;
       if (!loc) loc = { lat: 35.6892, lon: 51.3890, name: 'تهران' };

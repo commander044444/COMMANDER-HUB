@@ -2,7 +2,7 @@
 const CryptoMarket = {
   coins: [],
   lastFetch: 0,
-  CACHE_MS: 60000,
+  CACHE_MS: 180000,
   tomanRate: 77600, // نرخ تقریبی تومان به ازای هر دلار (به‌روز می‌شود)
   rateUpdated: 0,
 
@@ -153,9 +153,9 @@ const CryptoMarket = {
     return this.coinEmoji[coin.id] || coin.symbol?.charAt(0)?.toUpperCase() || '●';
   },
 
-  async renderWidget(el) {
+  async renderWidget(el, soft) {
     if (!el) return;
-    el.innerHTML = `<div class="loading-state">${t('common.loading')}</div>`;
+    if (!soft || !this.coins.length) el.innerHTML = `<div class="loading-state">${t('common.loading')}</div>`;
     try {
       await this.fetchData();
       const favs = AppState.favorites.crypto || [];
