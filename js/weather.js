@@ -4,10 +4,32 @@ const Weather = {
   location: null,
 
   async fetchByCoords(lat, lon) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Weather API error');
-    return res.json();
+    // wttr.in usually loads in Iran; fallback open-meteo
+    try {
+      const url = `https://wttr.in/${lat},${lon}?format=j1`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('wttr');
+      const data = await res.json();
+      const c = (data.current_condition && data.current_condition[0]) || {};
+      const desc = (c.lang_fa && c.lang_fa[0] && c.lang_fa[0].value) || c.weatherDesc?.[0]?.value || '';
+      return {
+        source: 'wttr.in',
+        current: {
+          temperature_2m: Number(c.temp_C),
+          relative_humidity_2m: Number(c.humidity),
+          wind_speed_10m: Number(c.windspeedKmph),
+          weather_code: Number(c.weatherCode || 0),
+          description_fa: desc
+        }
+      };
+    } catch (e) {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Weather API error');
+      const data = await res.json();
+      data.source = 'Open-Meteo';
+      return data;
+    }
   },
 
   async geocode(city) {
@@ -80,7 +102,7 @@ const Weather = {
           <div class="weather-icon">${icon}</div>
           <div>
             <div class="weather-temp">${Math.round(cur.temperature_2m)}°C</div>
-            <div class="weather-desc">${this.weatherCodeToText(cur.weather_code)}</div>
+            <div class="weather-desc">${escapeHtml(cur.description_fa || this.weatherCodeToText(cur.weather_code))}</div>
           </div>
         </div>
         <div class="weather-details">

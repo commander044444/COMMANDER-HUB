@@ -730,13 +730,13 @@ const Assistant = {
     const wasFirst = !this.lastVisit;
     const absence = this.lastVisit ? (now - this.lastVisit) : 0;
 
-    if (this.settings.autoGreet && this.canAutoSpeak()) {
+    if (this.settings.enabled && this.settings.autoGreet !== false) {
       const msg = this.buildMessage({
         greeting: true,
         returnSummary: absence > 12 * 3600000,
         priority: wasFirst ? 40 : 30
       });
-      this.show(msg, { open: this.settings.autoOpen });
+      this.show(msg, { open: true });
     }
 
     this.lastVisit = now;
@@ -746,25 +746,11 @@ const Assistant = {
   },
 
   onPageChange(view) {
-    if (!this.settings.enabled || !this.canAutoSpeak()) return;
-    // Only gentle page reactions when frequency allows
-    if (this.settings.frequency === 'low') return;
-    const key = 'page_' + view;
-    if (this.dismissed[key] && Date.now() - this.dismissed[key] < 300000) return;
-
-    let allow = false;
-    if (view === 'crypto' && this.settings.marketInsights) allow = true;
-    if (view === 'portfolio' && this.settings.portfolioInsights) allow = true;
-    if (view === 'news' && this.settings.newsInsights) allow = true;
-    if (view === 'tasks' && this.settings.taskInsights) allow = true;
-    if (['music', 'calendar', 'notes'].includes(view) && this.settings.frequency === 'high') allow = true;
-
-    if (!allow) return;
+    if (!this.settings.enabled) return;
     const msg = this.buildMessage({ fromPage: true, priority: 35 });
-    this.show(msg, { open: false }); // update content but don't force open
-    // Soft notify via orb pulse
+    this.show(msg, { open: true });
     document.getElementById('assistant-orb')?.classList.add('orb-pulse');
-    setTimeout(() => document.getElementById('assistant-orb')?.classList.remove('orb-pulse'), 2000);
+    setTimeout(() => document.getElementById('assistant-orb')?.classList.remove('orb-pulse'), 1600);
   },
 
   snapshotMarket() {

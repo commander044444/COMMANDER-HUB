@@ -32,24 +32,94 @@ const CryptoMarket = {
     return this.tomanRate;
   },
 
+  sourceLabel: 'نوبیتکس',
+  fetchedAt: null,
+
+  mapNobitex(stats) {
+    const pairs = [
+      ['btc-rls', 'bitcoin', 'BTC', 'بیت‌کوین'],
+      ['eth-rls', 'ethereum', 'ETH', 'اتریوم'],
+      ['usdt-rls', 'tether', 'USDT', 'تتر'],
+      ['bnb-rls', 'binancecoin', 'BNB', 'بایننس‌کوین'],
+      ['sol-rls', 'solana', 'SOL', 'سولانا'],
+      ['xrp-rls', 'ripple', 'XRP', 'ریپل'],
+      ['ada-rls', 'cardano', 'ADA', 'کاردانو'],
+      ['doge-rls', 'dogecoin', 'DOGE', 'دوج‌کوین'],
+      ['trx-rls', 'tron', 'TRX', 'ترون'],
+      ['ton-rls', 'the-open-network', 'TON', 'تون‌کوین'],
+      ['ltc-rls', 'litecoin', 'LTC', 'لایت‌کوین'],
+      ['shib-rls', 'shiba-inu', 'SHIB', 'شیبا']
+    ];
+    const usdt = stats['usdt-rls'];
+    const rate = usdt && usdt.latest ? Number(usdt.latest) / 10 : this.tomanRate;
+    if (rate > 1000) { this.tomanRate = Math.round(rate); this.rateUpdated = Date.now(); }
+    return pairs.map(([key, id, symbol, name]) => {
+      const s = stats[key] || {};
+      const rials = Number(s.latest || 0);
+      const toman = rials / 10;
+      const usd = this.tomanRate ? toman / this.tomanRate : 0;
+      const change = Number(s.dayChange || 0);
+      return {
+        id, symbol, name,
+        current_price: usd,
+        toman_price: toman,
+        price_change_percentage_24h: change,
+        market_cap: null,
+        image: ''
+      };
+    }).filter(c => c.toman_price > 0);
+  },
+
+  async fetchNobitex() {
+    const urls = [
+      'https://api.nobitex.ir/market/stats',
+      'https://apiv2.nobitex.ir/market/stats'
+    ];
+    let lastErr;
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('nobitex ' + res.status);
+        const data = await res.json();
+        const stats = data.stats || data;
+        const coins = this.mapNobitex(stats);
+        if (!coins.length) throw new Error('empty');
+        this.sourceLabel = 'نوبیتکس (زنده)';
+        return coins;
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr || new Error('nobitex');
+  },
+
   async fetchData() {
     const now = Date.now();
-    if (AppState.cryptoCache && (now - AppState.cryptoCacheTime) < this.CACHE_MS) {
+    if (AppState.cryptoCache && (now - AppState.cryptoCacheTime) < 45000) {
       this.coins = AppState.cryptoCache;
       return this.coins;
     }
     try {
-      await this.fetchTomanRate();
-      const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h');
-      if (!res.ok) throw new Error('API error ' + res.status);
-      const data = await res.json();
-      this.coins = data;
-      AppState.cryptoCache = data;
+      const coins = await this.fetchNobitex();
+      this.coins = coins;
+      this.fetchedAt = new Date();
+      AppState.cryptoCache = coins;
       AppState.cryptoCacheTime = now;
-      return data;
-    } catch (e) {
-      console.error('Crypto fetch error:', e);
-      throw e;
+      return coins;
+    } catch (e1) {
+      try {
+        await this.fetchTomanRate();
+        const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&price_change_percentage=24h', { cache: 'no-store' });
+        if (!res.ok) throw new Error('API error ' + res.status);
+        const data = await res.json();
+        this.sourceLabel = 'CoinGecko (پشتیبان)';
+        this.fetchedAt = new Date();
+        this.coins = data;
+        AppState.cryptoCache = data;
+        AppState.cryptoCacheTime = now;
+        return data;
+      } catch (e) {
+        console.error('Crypto fetch error:', e1, e);
+        throw e;
+      }
     }
   },
 
@@ -89,12 +159,12 @@ const CryptoMarket = {
             </div>
             <div class="crypto-price">
               <div class="crypto-value">$${this.formatPrice(c.current_price)}</div>
-              <div style="font-size:0.75rem;color:var(--text-secondary)">${this.toToman(c.current_price)} تومان</div>
+              <div style="font-size:0.75rem;color:var(--text-secondary)">${c.toman_price ? Math.round(c.toman_price).toLocaleString('fa-IR') : this.toToman(c.current_price)} تومان</div>
               <div class="crypto-change ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</div>
             </div>
           </div>`;
       });
-      html += `</div><div class="crypto-updated">${t('crypto.updated')}: ${new Date().toLocaleTimeString('fa-IR')} · نرخ: ۱$ ≈ ${this.tomanRate.toLocaleString('fa-IR')} تومان · ${t('crypto.source')}</div>`;
+      html += `</div><div class="crypto-updated">به‌روز: ${(this.fetchedAt||new Date()).toLocaleString('fa-IR')} · منبع: ${this.sourceLabel} · ۱$ ≈ ${this.tomanRate.toLocaleString('fa-IR')} تومان</div>`;
       el.innerHTML = html;
     } catch (e) {
       el.innerHTML = `<div class="error-state">${t('crypto.error')}<br><button class="btn btn-secondary" style="margin-top:0.75rem" onclick="CryptoMarket.refresh()">${t('crypto.retry')}</button></div>`;
@@ -153,7 +223,7 @@ const CryptoMarket = {
           </div>
           <div class="crypto-price">
             <div class="crypto-value">$${this.formatPrice(c.current_price)}</div>
-            <div style="font-size:0.8rem;color:var(--text-secondary)">${this.toToman(c.current_price)} تومان</div>
+            <div style="font-size:0.8rem;color:var(--text-secondary)">${c.toman_price ? Math.round(c.toman_price).toLocaleString('fa-IR') : this.toToman(c.current_price)} تومان</div>
             <div class="crypto-change ${change >= 0 ? 'positive' : 'negative'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</div>
             <div style="font-size:0.7rem;color:var(--text-muted)">ارزش بازار: $${this.formatCap(c.market_cap)}</div>
           </div>
