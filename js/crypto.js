@@ -1,5 +1,5 @@
 /* COMMANDER HUB - Cryptocurrency (دلار + تومان) */
-const Crypto = {
+const CryptoMarket = {
   coins: [],
   lastFetch: 0,
   CACHE_MS: 60000,
@@ -97,7 +97,7 @@ const Crypto = {
       html += `</div><div class="crypto-updated">${t('crypto.updated')}: ${new Date().toLocaleTimeString('fa-IR')} · نرخ: ۱$ ≈ ${this.tomanRate.toLocaleString('fa-IR')} تومان · ${t('crypto.source')}</div>`;
       el.innerHTML = html;
     } catch (e) {
-      el.innerHTML = `<div class="error-state">${t('crypto.error')}<br><button class="btn btn-secondary" style="margin-top:0.75rem" onclick="Crypto.refresh()">${t('crypto.retry')}</button></div>`;
+      el.innerHTML = `<div class="error-state">${t('crypto.error')}<br><button class="btn btn-secondary" style="margin-top:0.75rem" onclick="CryptoMarket.refresh()">${t('crypto.retry')}</button></div>`;
     }
   },
 
@@ -106,11 +106,11 @@ const Crypto = {
       <div class="view-header">
         <h1>${t('crypto.title')}</h1>
         <div class="view-actions">
-          <button class="btn btn-secondary" onclick="Crypto.refresh()">${t('common.refresh')}</button>
+          <button class="btn btn-secondary" onclick="CryptoMarket.refresh()">${t('common.refresh')}</button>
         </div>
       </div>
       <div class="card" style="margin-bottom:1rem">
-        <input type="search" class="form-control" id="crypto-search" placeholder="${t('crypto.search')}" oninput="Crypto.filterList()">
+        <input type="search" class="form-control" id="crypto-search" placeholder="${t('crypto.search')}" oninput="CryptoMarket.filterList()">
         <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem" id="rate-info"></div>
       </div>
       <div id="crypto-full-list" class="loading-state">${t('common.loading')}</div>`;
@@ -122,7 +122,7 @@ const Crypto = {
       this.renderList();
     } catch (e) {
       document.getElementById('crypto-full-list').innerHTML =
-        `<div class="error-state">${t('crypto.error')}<br><button class="btn btn-secondary" style="margin-top:0.75rem" onclick="Crypto.refresh()">${t('crypto.retry')}</button></div>`;
+        `<div class="error-state">${t('crypto.error')}<br><button class="btn btn-secondary" style="margin-top:0.75rem" onclick="CryptoMarket.refresh()">${t('crypto.retry')}</button></div>`;
     }
   },
 
@@ -144,7 +144,7 @@ const Crypto = {
       html += `
         <div class="crypto-item">
           <div class="crypto-info">
-            <button class="btn-icon" style="width:28px;height:28px;font-size:0.9rem" onclick="Crypto.toggleFav('${c.id}')">${isFav ? '⭐' : '☆'}</button>
+            <button class="btn-icon" style="width:28px;height:28px;font-size:0.9rem" onclick="CryptoMarket.toggleFav('${c.id}')">${isFav ? '⭐' : '☆'}</button>
             <span style="font-size:1.5rem;width:32px;text-align:center">${this.getEmoji(c)}</span>
             <div>
               <div class="crypto-symbol">${c.symbol.toUpperCase()}</div>

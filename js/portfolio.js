@@ -2,12 +2,12 @@
 const Portfolio = {
   async render(container) {
     // Ensure prices
-    try { await Crypto.fetchData(); } catch(e) {}
+    try { await CryptoMarket.fetchData(); } catch(e) {}
 
     let totalValue = 0;
     let totalCost = 0;
     const items = AppState.portfolio.map(p => {
-      const price = Crypto.getPrice(p.coinId) || p.buyPrice || 0;
+      const price = CryptoMarket.getPrice(p.coinId) || p.buyPrice || 0;
       const value = price * p.amount;
       const cost = (p.buyPrice || 0) * p.amount;
       totalValue += value;
@@ -18,8 +18,8 @@ const Portfolio = {
     const totalPnl = totalValue - totalCost;
     const pnlPct = totalCost ? ((totalPnl / totalCost) * 100) : 0;
 
-    const tomanTotal = Crypto.toToman ? Crypto.toToman(totalValue) : '—';
-    const tomanPnl = Crypto.toToman ? Crypto.toToman(Math.abs(totalPnl)) : '—';
+    const tomanTotal = CryptoMarket.toToman ? CryptoMarket.toToman(totalValue) : '—';
+    const tomanPnl = CryptoMarket.toToman ? CryptoMarket.toToman(Math.abs(totalPnl)) : '—';
 
     let html = `
       <div class="view-header">
@@ -47,7 +47,7 @@ const Portfolio = {
     } else {
       html += '<div class="portfolio-assets">';
       items.forEach(item => {
-        const tomanVal = Crypto.toToman ? Crypto.toToman(item.value) : '—';
+        const tomanVal = CryptoMarket.toToman ? CryptoMarket.toToman(item.value) : '—';
         html += `
           <div class="portfolio-asset">
             <div>
@@ -77,10 +77,10 @@ const Portfolio = {
     try {
       let total = 0;
       AppState.portfolio.forEach(p => {
-        const price = Crypto.getPrice(p.coinId) || p.buyPrice || 0;
+        const price = CryptoMarket.getPrice(p.coinId) || p.buyPrice || 0;
         total += price * p.amount;
       });
-      const toman = Crypto.toToman ? Crypto.toToman(total) : '—';
+      const toman = CryptoMarket.toToman ? CryptoMarket.toToman(total) : '—';
       el.innerHTML = `
         <div style="text-align:center;padding:1rem">
           <div style="font-size:1.6rem;font-weight:700">$${total.toLocaleString('en-US', {maximumFractionDigits: 2})}</div>
@@ -95,7 +95,7 @@ const Portfolio = {
 
   showEditor(id) {
     const item = id ? AppState.portfolio.find(p => p.id === id) : null;
-    const coins = (Crypto.coins.length ? Crypto.coins : AppState.cryptoCache || []).slice(0, 30);
+    const coins = (CryptoMarket.coins.length ? CryptoMarket.coins : AppState.cryptoCache || []).slice(0, 30);
     let options = coins.map(c => `<option value="${c.id}" data-symbol="${c.symbol}" ${item?.coinId===c.id?'selected':''}>${c.name} (${c.symbol.toUpperCase()})</option>`).join('');
     if (!options) options = `
       <option value="bitcoin">Bitcoin (BTC)</option>

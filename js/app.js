@@ -19,7 +19,7 @@ function renderCurrentView() {
     case 'notes': Notes.render(container); break;
     case 'tasks': Tasks.render(container); break;
     case 'calendar': Calendar.render(container); break;
-    case 'crypto': Crypto.render(container); break;
+    case 'crypto': CryptoMarket.render(container); break;
     case 'portfolio': Portfolio.render(container); break;
     case 'news': News.render(container); break;
     case 'music': renderMusic(container); break;

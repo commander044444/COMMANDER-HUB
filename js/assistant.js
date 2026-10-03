@@ -451,7 +451,7 @@ const Assistant = {
     let portfolioValue = 0;
     let portfolioCost = 0;
     (AppState.portfolio || []).forEach(p => {
-      const price = (typeof Crypto !== 'undefined' && Crypto.getPrice) ? (Crypto.getPrice(p.coinId) || p.buyPrice || 0) : (p.buyPrice || 0);
+      const price = (typeof CryptoMarket !== 'undefined' && CryptoMarket.getPrice) ? (CryptoMarket.getPrice(p.coinId) || p.buyPrice || 0) : (p.buyPrice || 0);
       portfolioValue += price * p.amount;
       portfolioCost += (p.buyPrice || 0) * p.amount;
     });
@@ -459,8 +459,8 @@ const Assistant = {
     const pnlPct = portfolioCost ? (pnl / portfolioCost) * 100 : 0;
 
     let topCoins = [];
-    if (typeof Crypto !== 'undefined' && Crypto.coins && Crypto.coins.length) {
-      topCoins = Crypto.coins.slice(0, 5).map(c => ({
+    if (typeof CryptoMarket !== 'undefined' && CryptoMarket.coins && CryptoMarket.coins.length) {
+      topCoins = CryptoMarket.coins.slice(0, 5).map(c => ({
         id: c.id,
         symbol: c.symbol,
         price: c.current_price,
@@ -543,7 +543,7 @@ const Assistant = {
         category = opts.fromHelp ? 'helpCrypto' : 'crypto';
         if (ctx.topCoins.length) {
           const btc = ctx.topCoins.find(c => c.id === 'bitcoin') || ctx.topCoins[0];
-          const sig = this.analyzeCoin(typeof Crypto !== 'undefined' ? Crypto.coins.find(x => x.id === btc.id) : null);
+          const sig = this.analyzeCoin(typeof CryptoMarket !== 'undefined' ? CryptoMarket.coins.find(x => x.id === btc.id) : null);
           facts.push(`${(btc.symbol || '').toUpperCase()}: $${btc.price != null ? Number(btc.price).toLocaleString() : '—'} (${btc.change != null ? (btc.change >= 0 ? '+' : '') + btc.change.toFixed(2) + '%' : '—'})`);
           if (sig.label !== 'insufficient') {
             facts.push(`${sig.emoji} ${sig.reason}`);
@@ -768,8 +768,8 @@ const Assistant = {
   },
 
   snapshotMarket() {
-    if (typeof Crypto === 'undefined' || !Crypto.coins) return;
-    const btc = Crypto.coins.find(c => c.id === 'bitcoin');
+    if (typeof CryptoMarket === 'undefined' || !CryptoMarket.coins) return;
+    const btc = CryptoMarket.coins.find(c => c.id === 'bitcoin');
     if (btc) {
       this.lastMarketSnapshot = {
         ts: Date.now(),

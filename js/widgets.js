@@ -112,10 +112,10 @@ const Widgets = {
     el.innerHTML = `
       <div class="widget-header">
         <span class="widget-title">💰 ${t('widget.crypto')}</span>
-        <button class="btn-icon" onclick="Crypto.refresh()" title="${t('common.refresh')}">🔄</button>
+        <button class="btn-icon" onclick="CryptoMarket.refresh()" title="${t('common.refresh')}">🔄</button>
       </div>
       <div id="crypto-widget-content" class="loading-state">${t('common.loading')}</div>`;
-    Crypto.renderWidget(document.getElementById('crypto-widget-content'));
+    CryptoMarket.renderWidget(document.getElementById('crypto-widget-content'));
   },
 
   portfolio(el) {

@@ -247,7 +247,7 @@ const I18N = {
     'nav.notes': 'Notes',
     'nav.tasks': 'Tasks',
     'nav.calendar': 'Calendar',
-    'nav.crypto': 'Crypto',
+    'nav.crypto': 'CryptoMarket',
     'nav.portfolio': 'Portfolio',
     'nav.news': 'News',
     'nav.music': 'Music',
