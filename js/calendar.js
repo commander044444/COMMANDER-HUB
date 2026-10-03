@@ -15,6 +15,15 @@ const Calendar = {
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    const occToday = (typeof Occasions !== 'undefined') ? Occasions.forDate(new Date()) : null;
+    const occBlock = occToday ? `
+      <div class="card" style="margin-bottom:1rem">
+        <h3 style="margin-bottom:0.5rem">مناسبت امروز · ${occToday.jalaliLabel}</h3>
+        <div class="event-item"><div class="event-time">جهانی</div><div>${occToday.world.length ? occToday.world.map(escapeHtml).join('، ') : 'مناسبت جهانی ثابتی برای این روز در فهرست نیست'}</div></div>
+        <div class="event-item"><div class="event-time">ایرانی</div><div>${occToday.iran.length ? occToday.iran.map(escapeHtml).join('، ') : 'مناسبت رسمی شمسی برای این روز نیست'}</div></div>
+        <div class="event-item"><div class="event-time">مذهبی</div><div>${occToday.religious.length ? occToday.religious.map(escapeHtml).join('، ') : 'مناسبت قمری فهرست‌شده نیست'}</div></div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">قمری با الگوریتم رایج است و ممکن است یک روز اختلاف داشته باشد. شمسی و جهانی ثابت دقیق‌اند.</p>
+      </div>` : '';
     let html = `
       <div class="view-header">
         <h1>${t('calendar.title')}</h1>
@@ -45,11 +54,14 @@ const Calendar = {
       const isToday = date.getTime() === today.getTime();
       const isSelected = this.selectedDate === iso;
       const hasEvent = AppState.events.some(e => e.date === iso);
-      html += `<div class="calendar-day ${isToday?'today':''} ${isSelected?'selected':''} ${hasEvent?'has-event':''}" 
-        onclick="Calendar.selectDate('${iso}')">${d}</div>`;
+      const occ = (typeof Occasions !== 'undefined') ? Occasions.forDate(date) : {world:[],iran:[],religious:[]};
+      const hasOcc = occ.world.length || occ.iran.length || occ.religious.length;
+      html += `<div class="calendar-day ${isToday?'today':''} ${isSelected?'selected':''} ${hasEvent?'has-event':''} ${hasOcc?'has-event':''}" 
+        onclick="Calendar.selectDate('${iso}')" title="${[...occ.iran, ...occ.world, ...occ.religious].join(' | ')}">${d}</div>`;
     }
 
     html += `</div></div>
+      ${occBlock}
       <div class="card">
         <h3 style="margin-bottom:1rem">${t('calendar.upcoming')}</h3>
         <div id="events-list">${this.renderEventsList()}</div>
@@ -109,6 +121,13 @@ const Calendar = {
   selectDate(iso) {
     this.selectedDate = iso;
     this.render(document.getElementById('main-content'));
+    const box = document.getElementById('events-list');
+    if (!box || typeof Occasions === 'undefined') return;
+    const occ = Occasions.forDate(new Date(iso + 'T12:00:00'));
+    const lines = [...occ.iran.map(x => 'ایرانی: ' + x), ...occ.world.map(x => 'جهانی: ' + x), ...occ.religious.map(x => 'مذهبی: ' + x)];
+    if (lines.length) {
+      box.insertAdjacentHTML('afterbegin', '<div class="event-item"><div class="event-time">مناسبت</div><div>' + lines.map(escapeHtml).join('<br>') + '</div></div>');
+    }
   },
 
   showEventEditor(id) {
