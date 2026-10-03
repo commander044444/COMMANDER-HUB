@@ -402,7 +402,6 @@ const AssistantChat = {
   },
 
   async handleSearch(query, forceGoogle) {
-    const pref = this.searchPref();
     const q = (query || '').trim();
     if (!q) {
       this.hideTyping();
@@ -410,40 +409,108 @@ const AssistantChat = {
       return;
     }
 
+    const pref = this.searchPref();
+
+    // Always open Google when forced or preference is google
     if (forceGoogle || pref === 'google') {
       this.hideTyping();
-      this.pushAssistant(this.lang() === 'fa' ? `🌐 Google را برای «${q}» باز می‌کنم.` : `Opening Google for “${q}”.`, { animate: true });
-      window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank', 'noopener');
+      this.openGoogleResults(q);
       return;
     }
 
+    // Ask every time (default) unless summarize-only preference
     if (pref === 'ask') {
       this.hideTyping();
-      this.pushAssistant(this.pick('searchAsk'), {
+      this.pushAssistant(
+        this.lang() === 'fa'
+          ? `برای «${q}» چی می‌خوای؟\n\n• ببرمت Google و نتایج واقعی را ببینی\n• یا همین‌جا یک توضیح کوتاه بگیرم`
+          : `For “${q}” — what do you want?\n\n• Open Google with real results\n• Or a short explanation here`,
+        {
+          animate: true,
+          suggestions: [
+            { label: this.lang() === 'fa' ? '🌐 منو ببر Google' : '🌐 Take me to Google', action: 'googleq:' + encodeURIComponent(q) },
+            { label: this.lang() === 'fa' ? '📝 همین‌جا توضیح بده' : '📝 Explain here', action: 'explain:' + encodeURIComponent(q) }
+          ]
+        }
+      );
+      return;
+    }
+
+    // Always summarize preference
+    await this.explainHere(q);
+  },
+
+  openGoogleResults(q) {
+    window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank', 'noopener');
+    this.pushAssistant(
+      this.lang() === 'fa'
+        ? `🌐 نتایج Google برای «${q}» در تب جدید باز شد.\nاز همان‌جا چند سایت را باز کن و خودت بخوان.`
+        : `🌐 Google results for “${q}” opened in a new tab.\nOpen a few sites there and read the originals.`,
+      { animate: true }
+    );
+  },
+
+  async explainHere(q) {
+    this.showTyping();
+    await this.wait(400);
+    // Try real DuckDuckGo Instant Answer (via proxy) — no invented sources
+    let abstract = '';
+    let related = [];
+    let heading = '';
+    try {
+      const ddg = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(q) + '&format=json&no_html=1&skip_disambig=1';
+      const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(ddg);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 7000);
+      const res = await fetch(proxy, { signal: ctrl.signal, cache: 'no-store' });
+      clearTimeout(timer);
+      if (res.ok) {
+        const data = await res.json();
+        heading = (data.Heading || '').trim();
+        abstract = (data.AbstractText || data.Abstract || '').trim();
+        related = (data.RelatedTopics || [])
+          .map(x => (x.Text || (x.Topics && x.Topics[0] && x.Topics[0].Text) || ''))
+          .filter(Boolean)
+          .slice(0, 4);
+      }
+    } catch (e) { /* fall through */ }
+
+    this.hideTyping();
+
+    if (abstract) {
+      let body = this.lang() === 'fa'
+        ? `📝 خلاصه (منبع: DuckDuckGo):\n${abstract}`
+        : `📝 Summary (source: DuckDuckGo):\n${abstract}`;
+      if (related.length) {
+        body += this.lang() === 'fa' ? '\n\nموضوعات مرتبط:\n' : '\n\nRelated:\n';
+        body += related.map(r => '• ' + r).join('\n');
+      }
+      body += this.lang() === 'fa'
+        ? '\n\nبرای جزئیات دقیق‌تر برو سراغ خود سایت‌ها در Google.'
+        : '\n\nFor full detail, open the original sites via Google.';
+      this.pushAssistant(body, {
         animate: true,
         suggestions: [
-          { label: this.lang() === 'fa' ? '🧠 خلاصه در HUB' : '🧠 Summarize in HUB', action: 'summarize:' + encodeURIComponent(q) },
-          { label: '🌐 Google', action: 'googleq:' + encodeURIComponent(q) }
+          { label: this.lang() === 'fa' ? '🌐 نتایج کامل Google' : '🌐 Full Google results', action: 'googleq:' + encodeURIComponent(q) }
         ]
       });
       return;
     }
 
-    // always summarize — honest: no fake crawl, guide user to real sites
-    this.hideTyping();
-    this.pushAssistant(this.lang() === 'fa' ? `🔎 Search:\n«${q}»` : `🔎 Search:\n“${q}”`, { animate: false });
-    this.showTyping();
-    await this.wait(500);
-    this.hideTyping();
-    const summary = this.buildHonestSummary(q);
-    this.pushAssistant(summary, {
-      animate: true,
-      suggestions: [
-        { label: this.lang() === 'fa' ? '🌐 باز کردن Google' : '🌐 Open Google', action: 'googleq:' + encodeURIComponent(q) },
-        { label: this.lang() === 'fa' ? '🔎 داخل HUB' : '🔎 Inside HUB', action: 'hubsearch:' + encodeURIComponent(q) }
-      ]
-    });
+    // No live abstract available — still honest, only summary-style guidance
+    this.pushAssistant(
+      this.lang() === 'fa'
+        ? `📝 خلاصه:\nبرای «${q}» این‌جا به متن کامل صفحات دسترسی ندارم.\n\nمعمولاً چند سایت آموزشی و مقاله در نتایج Google درباره‌اش هستن.\nمنو ببر Google تا همان نتایج را ببینی و از خود منبع بخوان.`
+        : `📝 Summary:\nI don’t have full page text for “${q}” here.\n\nGoogle usually lists several educational sites and articles.\nOpen Google to see those results and read the sources.`,
+      {
+        animate: true,
+        suggestions: [
+          { label: this.lang() === 'fa' ? '🌐 منو ببر Google' : '🌐 Take me to Google', action: 'googleq:' + encodeURIComponent(q) }
+        ]
+      }
+    );
   },
+
 
   buildHonestSummary(q) {
     const fa = this.lang() === 'fa';
@@ -482,10 +549,14 @@ const AssistantChat = {
       navigateTo(v);
       return;
     }
+    if (act.startsWith('explain:')) {
+      const q = decodeURIComponent(act.slice(8));
+      this.explainHere(q);
+      return;
+    }
     if (act.startsWith('googleq:')) {
       const q = decodeURIComponent(act.slice(8));
-      window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank', 'noopener');
-      this.pushAssistant(this.lang() === 'fa' ? 'Google باز شد.' : 'Google opened.', { animate: true });
+      this.openGoogleResults(q);
       return;
     }
     if (act.startsWith('summarize:')) {
