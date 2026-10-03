@@ -927,3 +927,68 @@ body:has(.assistant-orb.orb-left) #assistant-panel {
 .assistant-tools .btn { padding:0.3rem 0.55rem; font-size:0.75rem; }
 .calc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0.35rem; margin-top:0.5rem; }
 .calc-grid button { padding:0.55rem; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-hover); color:var(--text-primary); font-family:inherit; cursor:pointer; }
+
+.assistant-toasts {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(420px, calc(100vw - 1.5rem));
+  pointer-events: none;
+}
+.assistant-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(20, 28, 45, 0.88);
+  border: 1px solid rgba(120, 160, 255, 0.25);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  backdrop-filter: blur(16px);
+  color: var(--text-primary, #e8eefc);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  cursor: pointer;
+}
+.assistant-toast.show { opacity: 1; transform: translateY(0); }
+.assistant-toast-text { flex: 1; }
+.assistant-toast-x {
+  border: none; background: transparent; color: inherit; opacity: 0.6;
+  cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem;
+}
+.assistant-toast-x:hover { opacity: 1; }
+body.light-theme .assistant-toast,
+[data-theme="light"] .assistant-toast {
+  background: rgba(255,255,255,0.92);
+  color: #1a1f2e;
+  border-color: rgba(0,0,0,0.08);
+}
+
+.search-mode-bar { display:flex; gap:0.4rem; padding:0.55rem 0.75rem 0; }
+.search-mode-btn {
+  border:1px solid var(--border-color, rgba(255,255,255,0.12));
+  background: transparent; color: var(--text-secondary, #9aa6bf);
+  border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.78rem;
+  cursor: pointer; font-family: inherit;
+}
+.search-mode-btn.active {
+  background: rgba(80,120,255,0.18);
+  color: var(--text-primary, #e8eefc);
+  border-color: rgba(120,160,255,0.35);
+}
+.cmd-desc { opacity: 0.7; font-size: 0.78rem; }
+.cmd-type { margin-inline-start: auto; font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; }
+.command-group {
+  list-style: none; padding: 0.45rem 0.85rem 0.15rem;
+  font-size: 0.72rem; opacity: 0.55; letter-spacing: 0.04em;
+}
+.command-item { display: flex; align-items: flex-start; gap: 0.55rem; }

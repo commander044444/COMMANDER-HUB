@@ -380,6 +380,14 @@ const Assistant = {
         <button class="btn btn-secondary assistant-dismiss-btn" id="assistant-dismiss-btn">متوجه شدم</button>
       </div>`;
     document.body.appendChild(panel);
+
+    if (!document.getElementById('assistant-toasts')) {
+      const host = document.createElement('div');
+      host.id = 'assistant-toasts';
+      host.className = 'assistant-toasts';
+      host.setAttribute('aria-live', 'polite');
+      document.body.appendChild(host);
+    }
   },
 
   bindEvents() {
@@ -477,6 +485,7 @@ const Assistant = {
   },
 
   pick(category) {
+    if (typeof this.pickFromPool === 'function') return this.pickFromPool(category);
     const lang = this.lang();
     const pool = (this.templates[lang] && this.templates[lang][category]) || (this.templates.fa[category]) || ['...'];
     const recent = this.history.slice(0, 12).map(h => h.text);
@@ -490,6 +499,40 @@ const Assistant = {
     if (this.history.length > this.HISTORY_MAX) this.history.length = this.HISTORY_MAX;
     this.stats.messagesShown++;
     this.save();
+  },
+
+
+  poolFor(category) {
+    const lang = this.lang();
+    const keyMap = {
+      dashboard: 'dashboard', crypto: 'crypto', portfolio: 'portfolio', portfolioEmpty: 'portfolio',
+      tasks: 'tasks', tasksOverdue: 'tasks', tasksClear: 'tasks', notes: 'notes', news: 'news',
+      calendar: 'calendar', settings: 'settings', music: 'music', search: 'search',
+      firstVisit: 'firstVisit', returningShort: 'returningVisit', returningDay: 'returningVisit', returningLong: 'returningVisit',
+      morning: 'morning', afternoon: 'afternoon', evening: 'evening', night: 'night',
+      welcome: 'returningVisit'
+    };
+    const libKey = keyMap[category] || category;
+    let pool = [];
+    if (typeof AssistantMessages !== 'undefined') {
+      pool = AssistantMessages.list(lang, libKey).slice();
+    }
+    const tpl = (this.templates[lang] && this.templates[lang][category]) || [];
+    pool = pool.concat(tpl);
+    return pool;
+  },
+
+  pickFromPool(category) {
+    const pool = this.poolFor(category);
+    if (!pool.length) return this.lang() === 'fa' ? 'آماده.' : 'Ready.';
+    const recent = new Set((this.history || []).slice(0, 12).map(h => h.text || h.message || h));
+    const scored = pool.map((text, i) => {
+      const times = (this.history || []).filter(h => (h.text || h.message || h) === text).length;
+      let score = Math.random() * 10 - times * 3;
+      if (recent.has(text)) score -= 50;
+      return { text, score, i };
+    }).sort((a, b) => b.score - a.score);
+    return scored[0].text;
   },
 
   canAutoSpeak() {
@@ -726,7 +769,7 @@ const Assistant = {
     };
   },
 
-  show(msg, { open = true } = {}) {
+  show(msg, { open = false, toast = true } = {}) {
     if (!this.settings.enabled) return;
     this.currentMessage = msg;
     this.pushHistory(msg.message.split('\n')[0], msg.category);
@@ -750,12 +793,38 @@ const Assistant = {
     }
     if (helpBtn) helpBtn.textContent = this.lang() === 'fa' ? 'راهنمایی' : 'Help Me';
 
-    // Update panel dir
     const panel = document.getElementById('assistant-panel');
     if (panel) panel.setAttribute('dir', this.lang() === 'fa' ? 'rtl' : 'ltr');
 
-    if (open || this.settings.autoOpen) this.openPanel();
+    if (toast) this.showToast(msg);
+    if (open) this.openPanel();
     this.setCooldown();
+  },
+
+  showToast(msg) {
+    const host = document.getElementById('assistant-toasts');
+    if (!host) return;
+    const el = document.createElement('div');
+    el.className = 'assistant-toast';
+    el.setAttribute('role', 'status');
+    const line = (msg.message || '').split('\n')[0];
+    el.innerHTML = `<span class="assistant-toast-text">${escapeHtml(line)}</span>
+      <button type="button" class="assistant-toast-x" aria-label="dismiss">✕</button>`;
+    host.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    const remove = () => {
+      el.classList.remove('show');
+      setTimeout(() => el.remove(), 280);
+    };
+    el.querySelector('.assistant-toast-x').onclick = remove;
+    el.onclick = (e) => {
+      if (e.target.closest('.assistant-toast-x')) return;
+      this.openPanel();
+    };
+    const ms = this.settings.frequency === 'high' ? 4500 : this.settings.frequency === 'low' ? 7000 : 5500;
+    setTimeout(remove, ms);
+    // keep max 3 toasts
+    while (host.children.length > 3) host.firstElementChild.remove();
   },
 
   openPanel() {
@@ -794,7 +863,7 @@ const Assistant = {
   onHelp() {
     this.stats.helpClicks++;
     const msg = this.buildMessage({ fromHelp: true, fromPage: true, priority: 70 });
-    this.show(msg, { open: true });
+    this.show(msg, { open: true, toast: true });
     this.save();
   },
 
@@ -809,7 +878,7 @@ const Assistant = {
         returnSummary: absence > 12 * 3600000,
         priority: wasFirst ? 40 : 30
       });
-      this.show(msg, { open: true });
+      this.show(msg, { open: false, toast: true });
     }
 
     this.lastVisit = now;
@@ -821,7 +890,7 @@ const Assistant = {
   onPageChange(view) {
     if (!this.settings.enabled) return;
     const msg = this.buildMessage({ fromPage: true, priority: 35 });
-    this.show(msg, { open: true });
+    this.show(msg, { open: false, toast: true });
     document.getElementById('assistant-orb')?.classList.add('orb-pulse');
     setTimeout(() => document.getElementById('assistant-orb')?.classList.remove('orb-pulse'), 1600);
   },
