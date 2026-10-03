@@ -1162,3 +1162,6 @@ body.achat-open { overflow: hidden; }
   pointer-events: auto !important;
   z-index: 2;
 }
+
+.news-cats { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1rem; }
+.news-thumb { width:88px; height:66px; object-fit:cover; border-radius:8px; flex-shrink:0; background:var(--bg-hover, #1a2236); }
