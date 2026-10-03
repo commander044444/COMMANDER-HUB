@@ -919,3 +919,11 @@ body:has(.assistant-orb.orb-left) #assistant-panel {
     width: calc(100vw - 1.5rem);
   }
 }
+
+.news-preview { display:flex; gap:0.65rem; align-items:flex-start; }
+.news-thumb { width:72px; height:54px; object-fit:cover; border-radius:8px; flex-shrink:0; background:var(--bg-hover); }
+.news-desc { font-size:0.8rem; color:var(--text-secondary); margin:0.35rem 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.assistant-tools { display:flex; flex-wrap:wrap; gap:0.35rem; padding:0.5rem 1rem; border-top:1px solid var(--border-color); }
+.assistant-tools .btn { padding:0.3rem 0.55rem; font-size:0.75rem; }
+.calc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0.35rem; margin-top:0.5rem; }
+.calc-grid button { padding:0.55rem; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-hover); color:var(--text-primary); font-family:inherit; cursor:pointer; }

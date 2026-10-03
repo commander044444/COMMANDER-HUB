@@ -7,7 +7,8 @@ const Weather = {
     // wttr.in usually loads in Iran; fallback open-meteo
     try {
       const url = `https://wttr.in/${lat},${lon}?format=j1`;
-      const res = await fetch(url, { cache: 'no-store' });
+      const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 7000);
+      const res = await fetch(url, { cache: 'no-store', signal: ctrl.signal }); clearTimeout(timer);
       if (!res.ok) throw new Error('wttr');
       const data = await res.json();
       const c = (data.current_condition && data.current_condition[0]) || {};

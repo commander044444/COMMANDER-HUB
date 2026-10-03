@@ -364,6 +364,17 @@ const Assistant = {
         <div class="assistant-facts" id="assistant-facts"></div>
         <div class="assistant-actions" id="assistant-actions"></div>
       </div>
+      <div class="assistant-tools" id="assistant-tools">
+        <button class="btn btn-secondary" data-go="dashboard">داشبورد</button>
+        <button class="btn btn-secondary" data-go="crypto">رمزارز</button>
+        <button class="btn btn-secondary" data-go="news">اخبار</button>
+        <button class="btn btn-secondary" data-go="tasks">کارها</button>
+        <button class="btn btn-secondary" data-go="notes">یادداشت</button>
+        <button class="btn btn-secondary" data-go="calendar">تقویم</button>
+        <button class="btn btn-secondary" data-go="weather">آب‌وهوا</button>
+        <button class="btn btn-secondary" data-tool="calc">ماشین‌حساب</button>
+        <button class="btn btn-secondary" data-tool="google">جست‌وجوی گوگل</button>
+      </div>
       <div class="assistant-footer">
         <button class="btn btn-primary assistant-help-btn" id="assistant-help-btn">راهنمایی</button>
         <button class="btn btn-secondary assistant-dismiss-btn" id="assistant-dismiss-btn">متوجه شدم</button>
@@ -376,6 +387,68 @@ const Assistant = {
     document.getElementById('assistant-panel')?.querySelector('.assistant-close')?.addEventListener('click', () => this.closePanel());
     document.getElementById('assistant-help-btn')?.addEventListener('click', () => this.onHelp());
     document.getElementById('assistant-dismiss-btn')?.addEventListener('click', () => this.dismiss());
+    document.getElementById('assistant-tools')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      if (btn.dataset.go) this.go(btn.dataset.go);
+      if (btn.dataset.tool === 'calc') this.showCalc();
+      if (btn.dataset.tool === 'google') this.showGoogle();
+    });
+  },
+
+  go(view) {
+    if (view === 'weather') {
+      navigateTo('dashboard');
+      setTimeout(() => document.getElementById('weather-content')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+      return;
+    }
+    navigateTo(view);
+  },
+
+  showCalc() {
+    const msgEl = document.getElementById('assistant-msg');
+    const factsEl = document.getElementById('assistant-facts');
+    const actionsEl = document.getElementById('assistant-actions');
+    if (msgEl) msgEl.textContent = 'ماشین‌حساب';
+    if (factsEl) factsEl.innerHTML = `<input id="calc-screen" class="form-control" readonly value="0">
+      <div class="calc-grid">
+        ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','C','+','='].map(k => `<button type="button" data-k="${k}">${k}</button>`).join('')}
+      </div>`;
+    if (actionsEl) actionsEl.innerHTML = '';
+    this._calc = '0';
+    factsEl.querySelector('.calc-grid').onclick = (e) => {
+      const k = e.target.dataset.k;
+      if (!k) return;
+      const screen = document.getElementById('calc-screen');
+      if (k === 'C') this._calc = '0';
+      else if (k === '=') {
+        try { this._calc = String(Function('return (' + this._calc.replace(/[^0-9+\-*/.]/g, '') + ')')()); }
+        catch { this._calc = 'خطا'; }
+      } else {
+        this._calc = this._calc === '0' && '0123456789.'.includes(k) ? k : this._calc + k;
+      }
+      if (screen) screen.value = this._calc;
+    };
+    this.openPanel();
+  },
+
+  showGoogle() {
+    const msgEl = document.getElementById('assistant-msg');
+    const factsEl = document.getElementById('assistant-facts');
+    const actionsEl = document.getElementById('assistant-actions');
+    if (msgEl) msgEl.textContent = 'جست‌وجو در گوگل و باز کردن نتیجه';
+    if (factsEl) factsEl.innerHTML = `<form id="g-form" class="unlock-form">
+      <input id="g-q" class="form-control" placeholder="عبارت را بنویس..." autocomplete="off">
+      <button class="btn btn-primary" type="submit">جست‌وجو و برو</button>
+    </form>`;
+    if (actionsEl) actionsEl.innerHTML = '';
+    document.getElementById('g-form').onsubmit = (ev) => {
+      ev.preventDefault();
+      const q = document.getElementById('g-q').value.trim();
+      if (!q) return;
+      window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank', 'noopener');
+    };
+    this.openPanel();
   },
 
   updateOrbPosition() {
