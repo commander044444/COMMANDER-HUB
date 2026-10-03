@@ -992,3 +992,27 @@ body.light-theme .assistant-toast,
   font-size: 0.72rem; opacity: 0.55; letter-spacing: 0.04em;
 }
 .command-item { display: flex; align-items: flex-start; gap: 0.55rem; }
+
+.profile-menu {
+  position: fixed;
+  z-index: 11000;
+  min-width: 180px;
+  padding: 0.4rem;
+  border-radius: 12px;
+  background: rgba(18, 24, 40, 0.96);
+  border: 1px solid rgba(120,160,255,0.22);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.profile-menu.hidden { display: none; }
+.profile-menu button {
+  border: none; background: transparent; color: var(--text-primary, #e8eefc);
+  text-align: start; padding: 0.55rem 0.7rem; border-radius: 8px;
+  cursor: pointer; font-family: inherit; font-size: 0.88rem;
+}
+.profile-menu button:hover { background: rgba(255,255,255,0.06); }
+.user-profile { cursor: pointer; }
+#notifications-panel { z-index: 10500; }

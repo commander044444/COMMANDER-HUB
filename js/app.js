@@ -168,6 +168,38 @@ document.addEventListener('DOMContentLoaded', () => {
     await Security.unlock(pass);
   });
 
+  // Profile menu
+  document.getElementById('user-profile')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    let menu = document.getElementById('profile-menu');
+    if (!menu) {
+      menu = document.createElement('div');
+      menu.id = 'profile-menu';
+      menu.className = 'profile-menu hidden';
+      menu.innerHTML = `
+        <button type="button" data-act="settings">⚙️ ${AppState.language==='fa'?'تنظیمات':'Settings'}</button>
+        <button type="button" data-act="workspace">🗂 ${AppState.language==='fa'?'فضای کاری':'Workspace'}</button>
+        <button type="button" data-act="backup">💾 ${AppState.language==='fa'?'پشتیبان‌گیری':'Backup'}</button>
+        <button type="button" data-act="assistant">🤖 ${AppState.language==='fa'?'دستیار':'Assistant'}</button>`;
+      document.body.appendChild(menu);
+      menu.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('[data-act]');
+        if (!btn) return;
+        menu.classList.add('hidden');
+        const a = btn.dataset.act;
+        if (a === 'settings') navigateTo('settings');
+        else if (a === 'workspace') navigateTo('dashboard');
+        else if (a === 'backup') navigateTo('settings');
+        else if (a === 'assistant' && typeof Assistant !== 'undefined') Assistant.openPanel();
+      });
+      document.addEventListener('click', () => menu.classList.add('hidden'));
+    }
+    const rect = document.getElementById('user-profile').getBoundingClientRect();
+    menu.style.top = (rect.bottom + 6) + 'px';
+    menu.style.insetInlineEnd = Math.max(8, window.innerWidth - rect.right) + 'px';
+    menu.classList.toggle('hidden');
+  });
+
   // Notifications
   document.getElementById('notifications-btn')?.addEventListener('click', () => {
     const panel = document.getElementById('notifications-panel');

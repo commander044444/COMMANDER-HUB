@@ -56,7 +56,7 @@ const Widgets = {
         </div>
       </div>
       <div id="weather-content" class="loading-state">${t('common.loading')}</div>`;
-    Weather.render(document.getElementById('weather-content'));
+    setTimeout(() => Weather.render(document.getElementById('weather-content')), 80);
   },
 
   tasks(el) {
@@ -115,7 +115,7 @@ const Widgets = {
         <button class="btn-icon" onclick="CryptoMarket.refresh()" title="${t('common.refresh')}">🔄</button>
       </div>
       <div id="crypto-widget-content" class="loading-state">${t('common.loading')}</div>`;
-    CryptoMarket.renderWidget(document.getElementById('crypto-widget-content'));
+    setTimeout(() => CryptoMarket.renderWidget(document.getElementById('crypto-widget-content')), 160);
   },
 
   portfolio(el) {
@@ -170,10 +170,10 @@ const Widgets = {
     el.innerHTML = `
       <div class="widget-header">
         <span class="widget-title">📰 ${t('widget.news')}</span>
-        <button class="btn-icon" onclick="News.refresh()" title="${t('common.refresh')}">🔄</button>
+        <button class="btn-icon" onclick="News.refresh(true)" title="${t('common.refresh')}">🔄</button>
       </div>
       <div id="news-widget-content" class="loading-state">${t('common.loading')}</div>`;
-    News.renderWidget(document.getElementById('news-widget-content'));
+    setTimeout(() => News.renderWidget(document.getElementById('news-widget-content')), 200);
   },
 
   system(el) {
