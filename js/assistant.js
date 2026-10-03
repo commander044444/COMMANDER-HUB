@@ -23,7 +23,12 @@ const Assistant = {
     frequency: 'normal', // low | normal | high
     position: 'right',   // left | right
     autoOpen: false,
-    animations: true
+    animations: true,
+    searchBehavior: 'ask', // ask | summarize | google
+    smartSearch: true,
+    suggestedActions: true,
+    typingAnimation: true,
+    messageHistory: true
   },
 
   FREQ_MS: { low: 120000, normal: 60000, high: 30000 },
@@ -309,6 +314,7 @@ const Assistant = {
     this.load();
     this.injectUI();
     this.bindEvents();
+    if (typeof AssistantChat !== "undefined") AssistantChat.init();
     this.updateOrbPosition();
     if (!this.settings.enabled) {
       document.getElementById('assistant-orb')?.classList.add('hidden');
@@ -391,7 +397,10 @@ const Assistant = {
   },
 
   bindEvents() {
-    document.getElementById('assistant-orb')?.addEventListener('click', () => this.togglePanel());
+    document.getElementById('assistant-orb')?.addEventListener('click', () => {
+      if (typeof AssistantChat !== 'undefined') AssistantChat.openChat();
+      else this.togglePanel();
+    });
     document.getElementById('assistant-panel')?.querySelector('.assistant-close')?.addEventListener('click', () => this.closePanel());
     document.getElementById('assistant-help-btn')?.addEventListener('click', () => this.onHelp());
     document.getElementById('assistant-dismiss-btn')?.addEventListener('click', () => this.dismiss());
@@ -828,6 +837,10 @@ const Assistant = {
   },
 
   openPanel() {
+    if (typeof AssistantChat !== 'undefined') {
+      AssistantChat.openChat();
+      return;
+    }
     const panel = document.getElementById('assistant-panel');
     if (!panel) return;
     panel.classList.remove('hidden');

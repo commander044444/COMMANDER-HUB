@@ -164,6 +164,22 @@ const Settings = {
           <div class="settings-label">${AppState.language === 'fa' ? 'انیمیشن' : 'Animations'}</div>
           <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.animations ? 'checked' : ''} onchange="Assistant.applySettings({animations:this.checked})">
         </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'رفتار جست‌وجو' : 'Search behavior'}</div>
+          <select class="form-control" style="width:auto" onchange="Assistant.applySettings({searchBehavior:this.value})">
+            <option value="ask" ${typeof Assistant !== 'undefined' && Assistant.settings.searchBehavior==='ask'?'selected':''}>${AppState.language==='fa'?'هر بار بپرس':'Ask every time'}</option>
+            <option value="summarize" ${typeof Assistant !== 'undefined' && Assistant.settings.searchBehavior==='summarize'?'selected':''}>${AppState.language==='fa'?'همیشه خلاصه':'Always summarize'}</option>
+            <option value="google" ${typeof Assistant !== 'undefined' && Assistant.settings.searchBehavior==='google'?'selected':''}>${AppState.language==='fa'?'همیشه Google':'Always Google'}</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'پیشنهادها' : 'Suggested actions'}</div>
+          <input type="checkbox" ${typeof Assistant === 'undefined' || Assistant.settings.suggestedActions !== false ? 'checked' : ''} onchange="Assistant.applySettings({suggestedActions:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'انیمیشن تایپ' : 'Typing animation'}</div>
+          <input type="checkbox" ${typeof Assistant === 'undefined' || Assistant.settings.typingAnimation !== false ? 'checked' : ''} onchange="Assistant.applySettings({typingAnimation:this.checked});Assistant.applySettings({animations:this.checked})">
+        </div>
       </div>
 
       <div class="settings-section">
