@@ -452,81 +452,102 @@ const AssistantChat = {
 
   async explainHere(q) {
     this.showTyping();
-    await this.wait(400);
-    // Try real DuckDuckGo Instant Answer (via proxy) — no invented sources
-    let abstract = '';
-    let related = [];
-    let heading = '';
+    await this.wait(300);
+    const fa = this.lang() === 'fa';
+    // 1) ویکی‌پدیا فارسی/انگلیسی — معمولاً از ایران در دسترس + CORS باز
+    let summary = null;
+    let sourceUrl = '';
+    let sourceName = '';
     try {
-      const ddg = 'https://api.duckduckgo.com/?q=' + encodeURIComponent(q) + '&format=json&no_html=1&skip_disambig=1';
-      const proxy = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(ddg);
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 7000);
-      const res = await fetch(proxy, { signal: ctrl.signal, cache: 'no-store' });
-      clearTimeout(timer);
-      if (res.ok) {
-        const data = await res.json();
-        heading = (data.Heading || '').trim();
-        abstract = (data.AbstractText || data.Abstract || '').trim();
-        related = (data.RelatedTopics || [])
-          .map(x => (x.Text || (x.Topics && x.Topics[0] && x.Topics[0].Text) || ''))
-          .filter(Boolean)
-          .slice(0, 4);
+      summary = await this.fetchWikiSummary(q, 'fa');
+      if (!summary) summary = await this.fetchWikiSummary(q, 'en');
+      if (summary) {
+        sourceUrl = summary.url;
+        sourceName = summary.lang === 'fa' ? 'ویکی‌پدیا فارسی' : 'Wikipedia';
       }
-    } catch (e) { /* fall through */ }
+    } catch (e) {}
 
     this.hideTyping();
 
-    if (abstract) {
-      let body = this.lang() === 'fa'
-        ? `📝 خلاصه (منبع: DuckDuckGo):\n${abstract}`
-        : `📝 Summary (source: DuckDuckGo):\n${abstract}`;
-      if (related.length) {
-        body += this.lang() === 'fa' ? '\n\nموضوعات مرتبط:\n' : '\n\nRelated:\n';
-        body += related.map(r => '• ' + r).join('\n');
+    if (summary && summary.extract) {
+      let body = fa
+        ? `📝 خلاصه از ${sourceName}:\n${summary.extract}`
+        : `📝 Summary from ${sourceName}:\n${summary.extract}`;
+      if (sourceUrl) {
+        body += fa
+          ? `\n\nبرای جزئیات دقیق‌تر برو به خود صفحه:\n${sourceUrl}`
+          : `\n\nFor full detail, open the page:\n${sourceUrl}`;
       }
-      body += this.lang() === 'fa'
-        ? '\n\nبرای جزئیات دقیق‌تر برو سراغ خود سایت‌ها در Google.'
-        : '\n\nFor full detail, open the original sites via Google.';
       this.pushAssistant(body, {
         animate: true,
         suggestions: [
-          { label: this.lang() === 'fa' ? '🌐 نتایج کامل Google' : '🌐 Full Google results', action: 'googleq:' + encodeURIComponent(q) }
+          { label: fa ? '🔗 باز کردن منبع' : '🔗 Open source', action: 'openurl:' + encodeURIComponent(sourceUrl || '') },
+          { label: fa ? '🌐 نتایج Google' : '🌐 Google results', action: 'googleq:' + encodeURIComponent(q) }
         ]
       });
       return;
     }
 
-    // No live abstract available — still honest, only summary-style guidance
+    // 2) بدون خلاصه — فقط مسیر واقعی Google
     this.pushAssistant(
-      this.lang() === 'fa'
-        ? `📝 خلاصه:\nبرای «${q}» این‌جا به متن کامل صفحات دسترسی ندارم.\n\nمعمولاً چند سایت آموزشی و مقاله در نتایج Google درباره‌اش هستن.\nمنو ببر Google تا همان نتایج را ببینی و از خود منبع بخوان.`
-        : `📝 Summary:\nI don’t have full page text for “${q}” here.\n\nGoogle usually lists several educational sites and articles.\nOpen Google to see those results and read the sources.`,
+      fa
+        ? `📝 خلاصه آماده‌ای از ویکی‌پدیا برای «${q}» پیدا نشد.\n\nبرای دیدن چند سایت و مقاله، منو ببر Google و از خود نتایج بخوان.`
+        : `📝 No Wikipedia summary for “${q}”.\n\nOpen Google to see several sites and read the originals.`,
       {
         animate: true,
         suggestions: [
-          { label: this.lang() === 'fa' ? '🌐 منو ببر Google' : '🌐 Take me to Google', action: 'googleq:' + encodeURIComponent(q) }
+          { label: fa ? '🌐 منو ببر Google' : '🌐 Take me to Google', action: 'googleq:' + encodeURIComponent(q) }
         ]
       }
     );
   },
 
-
-  buildHonestSummary(q) {
-    const fa = this.lang() === 'fa';
-    if (fa) {
-      return (
-        `دربارهٔ «${q}» معمولاً سایت‌های آموزشی، مقاله‌ها و انجمن‌ها در نتایج جست‌وجو حرف می‌زنن.\n\n` +
-        `من این‌جا نمی‌تونم محتوای زندهٔ آن سایت‌ها را بخوانم یا خلاصهٔ قطعی بسازم.\n\n` +
-        `برای اطلاعات دقیق‌تر برو سراغ خود نتایج (دکمه Google) و از صفحهٔ اصلی منبع بخوان — نه از نقل‌قول غیررسمی.`
-      );
+  async fetchWikiSummary(q, lang) {
+    const title = encodeURIComponent(q.replace(/\s+/g, '_'));
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${title}`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store', headers: { Accept: 'application/json' } });
+      clearTimeout(timer);
+      if (!res.ok) {
+        // try opensearch then summary
+        const os = await this.wikiOpenSearch(q, lang);
+        if (!os) return null;
+        return this.fetchWikiSummary(os, lang);
+      }
+      const data = await res.json();
+      if (data.type === 'disambiguation') {
+        const os = await this.wikiOpenSearch(q, lang);
+        if (os && os !== q) return this.fetchWikiSummary(os, lang);
+        return null;
+      }
+      const extract = (data.extract || '').trim();
+      if (!extract) return null;
+      return {
+        extract: extract.slice(0, 900),
+        url: (data.content_urls && data.content_urls.desktop && data.content_urls.desktop.page) || data.content_urls?.mobile?.page || `https://${lang}.wikipedia.org/wiki/${title}`,
+        lang
+      };
+    } catch (e) {
+      clearTimeout(timer);
+      return null;
     }
-    return (
-      `For “${q}”, educational sites, articles, and forums usually show up in search results.\n\n` +
-      `I can’t fetch live page content here or invent a definitive summary.\n\n` +
-      `For accurate details, open Google and read the original pages yourself.`
-    );
   },
+
+  async wikiOpenSearch(q, lang) {
+    try {
+      const url = `https://${lang}.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(q)}&limit=1&namespace=0&format=json&origin=*`;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 5000);
+      const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+      clearTimeout(timer);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return (data[1] && data[1][0]) || null;
+    } catch (e) { return null; }
+  },
+
 
   runChip(act) {
     if (!act) return;
@@ -552,6 +573,11 @@ const AssistantChat = {
     if (act.startsWith('explain:')) {
       const q = decodeURIComponent(act.slice(8));
       this.explainHere(q);
+      return;
+    }
+    if (act.startsWith('openurl:')) {
+      const u = decodeURIComponent(act.slice(8));
+      if (u) window.open(u, '_blank', 'noopener');
       return;
     }
     if (act.startsWith('googleq:')) {
