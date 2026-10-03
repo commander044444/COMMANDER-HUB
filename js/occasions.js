@@ -120,12 +120,20 @@ const Occasions = {
     const h = this.toHijri(date);
     const jKey = j.m + '-' + j.d;
     const hKey = h.m + '-' + h.d;
+    const world = (this.gregorian[gKey] || []).slice();
+    if (this.isWorldSmileDay(date)) world.push('روز جهانی لبخند');
     return {
       jalaliLabel: j.d + ' ' + this.monthFa[j.m] + ' ' + j.y,
       hijriLabel: h.d + '/' + h.m + '/' + h.y,
-      world: this.gregorian[gKey] || [],
+      world,
       iran: this.jalali[jKey] || [],
       religious: this.hijri[hKey] || []
     };
+  },
+
+  isWorldSmileDay(date) {
+    // جمعه اول اکتبر؛ سال ۲۰۲۶ = ۲ اکتبر
+    if (date.getMonth() !== 9 || date.getDay() !== 5) return false;
+    return date.getDate() <= 7;
   }
 };
