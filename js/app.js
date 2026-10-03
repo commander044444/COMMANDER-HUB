@@ -8,6 +8,7 @@ function navigateTo(view) {
   document.getElementById('sidebar').classList.remove('open');
   document.querySelector('.sidebar-overlay')?.classList.remove('visible');
   renderCurrentView();
+  if (typeof Assistant !== 'undefined') Assistant.onPageChange(view);
 }
 
 function renderCurrentView() {
@@ -209,6 +210,11 @@ document.addEventListener('DOMContentLoaded', () => {
     Search.openCommandPalette();
     document.getElementById('global-search').blur();
   });
+
+  // Assistant
+  if (typeof Assistant !== 'undefined') {
+    Assistant.init();
+  }
 
   // Initial render
   if (!AppState.isLocked) {

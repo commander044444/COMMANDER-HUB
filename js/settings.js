@@ -116,6 +116,57 @@ const Settings = {
       </div>
 
       <div class="settings-section">
+        <h3>🤖 ${AppState.language === 'fa' ? 'دستیار' : 'Assistant'}</h3>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'فعال‌سازی دستیار' : 'Enable Assistant'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.enabled ? 'checked' : ''} onchange="Assistant.applySettings({enabled:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'سلام خودکار' : 'Auto Greetings'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.autoGreet ? 'checked' : ''} onchange="Assistant.applySettings({autoGreet:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'بینش بازار' : 'Market Insights'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.marketInsights ? 'checked' : ''} onchange="Assistant.applySettings({marketInsights:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'بینش پورتفولیو' : 'Portfolio Insights'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.portfolioInsights ? 'checked' : ''} onchange="Assistant.applySettings({portfolioInsights:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'بینش کارها' : 'Task Insights'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.taskInsights ? 'checked' : ''} onchange="Assistant.applySettings({taskInsights:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'خلاصه بازگشت' : 'Return Summary'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.returnSummary ? 'checked' : ''} onchange="Assistant.applySettings({returnSummary:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'فرکانس' : 'Frequency'}</div>
+          <select class="form-control" style="width:auto" onchange="Assistant.applySettings({frequency:this.value})">
+            <option value="low" ${typeof Assistant !== 'undefined' && Assistant.settings.frequency==='low'?'selected':''}>${AppState.language==='fa'?'کم':'Low'}</option>
+            <option value="normal" ${typeof Assistant !== 'undefined' && Assistant.settings.frequency==='normal'?'selected':''}>${AppState.language==='fa'?'عادی':'Normal'}</option>
+            <option value="high" ${typeof Assistant !== 'undefined' && Assistant.settings.frequency==='high'?'selected':''}>${AppState.language==='fa'?'زیاد':'High'}</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'موقعیت دکمه' : 'Orb Position'}</div>
+          <select class="form-control" style="width:auto" onchange="Assistant.applySettings({position:this.value})">
+            <option value="right" ${typeof Assistant !== 'undefined' && Assistant.settings.position==='right'?'selected':''}>${AppState.language==='fa'?'راست':'Right'}</option>
+            <option value="left" ${typeof Assistant !== 'undefined' && Assistant.settings.position==='left'?'selected':''}>${AppState.language==='fa'?'چپ':'Left'}</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'باز شدن خودکار پنل' : 'Auto Open Panel'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.autoOpen ? 'checked' : ''} onchange="Assistant.applySettings({autoOpen:this.checked})">
+        </div>
+        <div class="settings-row">
+          <div class="settings-label">${AppState.language === 'fa' ? 'انیمیشن' : 'Animations'}</div>
+          <input type="checkbox" ${typeof Assistant !== 'undefined' && Assistant.settings.animations ? 'checked' : ''} onchange="Assistant.applySettings({animations:this.checked})">
+        </div>
+      </div>
+
+      <div class="settings-section">
         <h3>${t('settings.about')}</h3>
         <div class="settings-row">
           <div class="settings-label">${t('settings.version')}</div>

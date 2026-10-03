@@ -777,3 +777,144 @@
 .widget-drag-handle:active {
   cursor: grabbing;
 }
+
+/* ─── COMMANDER ASSISTANT ─── */
+.assistant-orb {
+  position: fixed;
+  bottom: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 1.6rem;
+  cursor: pointer;
+  z-index: 1800;
+  box-shadow: 0 4px 24px var(--accent-glow), var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.assistant-orb.orb-right { inset-inline-end: 1.5rem; inset-inline-start: auto; }
+.assistant-orb.orb-left { inset-inline-start: 1.5rem; inset-inline-end: auto; }
+.assistant-orb:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px var(--accent-glow);
+}
+.assistant-orb.orb-pulse {
+  animation: orbPulse 0.6s ease 2;
+}
+.assistant-orb.no-anim { animation: none !important; }
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); box-shadow: 0 0 30px var(--accent-glow); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-orb { animation: none !important; }
+}
+
+.assistant-panel {
+  position: fixed;
+  bottom: 5.5rem;
+  width: min(360px, calc(100vw - 2rem));
+  max-height: min(70vh, 480px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  z-index: 1801;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  animation: modalIn 0.25s ease;
+}
+.assistant-panel.hidden { display: none; }
+.orb-right ~ .assistant-panel,
+body:has(.assistant-orb.orb-right) .assistant-panel {
+  inset-inline-end: 1.5rem;
+  inset-inline-start: auto;
+}
+.orb-left ~ .assistant-panel,
+body:has(.assistant-orb.orb-left) .assistant-panel {
+  inset-inline-start: 1.5rem;
+  inset-inline-end: auto;
+}
+/* fallback position */
+#assistant-panel {
+  inset-inline-end: 1.5rem;
+}
+body:has(.assistant-orb.orb-left) #assistant-panel {
+  inset-inline-end: auto;
+  inset-inline-start: 1.5rem;
+}
+
+.assistant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--accent-soft);
+}
+.assistant-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.assistant-body {
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.assistant-msg {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  margin-bottom: 0.75rem;
+}
+.assistant-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+.assistant-fact {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 0.4rem 0.65rem;
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm);
+  border-inline-start: 3px solid var(--accent);
+}
+.assistant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.assistant-actions .btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+.assistant-footer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border-color);
+}
+.assistant-footer .btn {
+  flex: 1;
+}
+@media (max-width: 480px) {
+  .assistant-orb {
+    width: 48px;
+    height: 48px;
+    font-size: 1.35rem;
+    bottom: 1rem;
+  }
+  .assistant-panel {
+    bottom: 4.5rem;
+    width: calc(100vw - 1.5rem);
+  }
+}

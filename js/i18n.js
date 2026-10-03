@@ -492,4 +492,5 @@ function setLanguage(lang) {
   applyTranslations();
   Storage.save('language', lang);
   if (window.renderCurrentView) renderCurrentView();
+  if (typeof Assistant !== 'undefined' && Assistant.onLanguageChange) Assistant.onLanguageChange();
 }
