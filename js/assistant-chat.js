@@ -305,17 +305,38 @@ const AssistantChat = {
 
   classify(text) {
     const t = text.trim();
-    if (/^(سلام|درود|هی|hello|hi|hey)\b/i.test(t) || /^(خوبی|چطوری)\??$/i.test(t) || /how are you/i.test(t)) return 'greeting';
+    const low = t.toLowerCase();
+    // سلام / علیک
+    if (/سلام\s*علیک|علیکم\s*سلام|سلام‌علیکم|عرض ادب|وقت بخیر|صبح بخیر|ظهر بخیر|عصر بخیر|شب بخیر|روز بخیر/i.test(t))
+      return 'greeting';
+    if (/^(سلام|سلاام|درود|هی|های|هللو|hello|hi|hey)[\s!!.]*$/i.test(t))
+      return 'greeting';
+    // احوال‌پرسی
+    if (/^(خوبی|چطوری|چطوره|حالت چطوره|چه خبر|چخبر)\??[!!.]*$/i.test(t) || /how are you|how r u|what'?s up/i.test(t))
+      return 'howareyou';
     if (/اسم پروژه چی بود|what was the (project )?name/i.test(t)) return 'memory';
+    if (/کی هستی|تو کیی|who are you|what are you/i.test(t)) return 'who';
+    if (/اسمت چیه|what'?s your name|اسم تو/i.test(t)) return 'name';
+    if (/دوستت دارم|عاشقتم|love you/i.test(t)) return 'love';
+    if (/حوصله|boring|کیف نمی?کنم/i.test(t)) return 'bored';
+    if (/خخ|😂|هاها|جالب بود|خنده/i.test(t)) return 'laugh';
+    if (/خداحافظ|فعلاً|بای بای|bye|see you|شب خوش/i.test(t)) return 'bye';
+    if (/^(ممنون|مرسی|دمت گرم|thanks|thank you|thx)\b/i.test(t)) return 'thanks';
+    if (/^(باشه|اوکی|ok|okay|چشم|حتما|آره|بله)\.?$/i.test(t)) return 'ok';
     if (/منو ببر|باز کن|برو به|open |go to |navigate/i.test(t)) return 'navigate';
     if (/google|گوگل|سرچ کن|search for|جستجو کن/i.test(t)) return 'google';
     if (/رستوران|نزدیک من|موقعیت|location|maps|مکان نزدیک/i.test(t)) return 'location';
     if (/^(راهنما|کمک|help)\b/i.test(t) || /راهنمایی|کمک می‌خوام|how (do|to)/i.test(t)) return 'help';
     if (/هوا|آب\s*و\s*هوا|weather/i.test(t)) return 'weather';
-    if (/^(ممنون|مرسی|ok|باشه|thanks|thank you)\.?$/i.test(t)) return 'chat';
-    // هر پیام غیرکوتاه = جست‌وجو/اطلاعات
     if (t.length >= 2) return 'search';
     return 'chat';
+  },
+
+  chatReply(key) {
+    if (typeof AssistantChatReplies !== 'undefined' && AssistantChatReplies.pick) {
+      return AssistantChatReplies.pick(this.lang() === 'en' ? 'en' : 'fa', key);
+    }
+    return this.pick(key === 'greet' ? 'greeting' : key);
   },
 
   async respond(text) {
@@ -326,7 +347,57 @@ const AssistantChat = {
 
     if (intent === 'greeting') {
       this.hideTyping();
-      this.pushAssistant(this.pick('greeting'), { animate: true, suggestions: this.defaultSuggestions() });
+      this.pushAssistant(this.chatReply('greet'), { animate: true, suggestions: this.defaultSuggestions() });
+      return;
+    }
+    if (intent === 'howareyou') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('how'), { animate: true, suggestions: this.defaultSuggestions() });
+      return;
+    }
+    if (intent === 'thanks') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('thanks'), { animate: true });
+      return;
+    }
+    if (intent === 'bye') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('bye'), { animate: true });
+      return;
+    }
+    if (intent === 'ok') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('ok'), { animate: true });
+      return;
+    }
+    if (intent === 'who') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('who'), { animate: true, suggestions: this.defaultSuggestions() });
+      return;
+    }
+    if (intent === 'name') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('name'), { animate: true });
+      return;
+    }
+    if (intent === 'love') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('love'), { animate: true });
+      return;
+    }
+    if (intent === 'bored') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('bored'), { animate: true, suggestions: this.defaultSuggestions() });
+      return;
+    }
+    if (intent === 'laugh') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('laugh'), { animate: true });
+      return;
+    }
+    if (intent === 'chat') {
+      this.hideTyping();
+      this.pushAssistant(this.chatReply('smalltalk'), { animate: true, suggestions: this.defaultSuggestions() });
       return;
     }
     if (intent === 'memory') {
