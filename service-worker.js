@@ -1,5 +1,5 @@
 /* COMMANDER HUB - Service Worker */
-const CACHE_NAME = 'commander-hub-v2';
+const CACHE_NAME = 'commander-hub-v3';
 const SHELL = [
   './',
   './index.html',

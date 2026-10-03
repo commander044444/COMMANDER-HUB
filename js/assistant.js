@@ -381,9 +381,22 @@ const Assistant = {
   updateOrbPosition() {
     const orb = document.getElementById('assistant-orb');
     if (!orb) return;
+    orb.classList.remove('hidden');
     orb.classList.toggle('orb-left', this.settings.position === 'left');
     orb.classList.toggle('orb-right', this.settings.position !== 'left');
     orb.classList.toggle('no-anim', !this.settings.animations);
+    if (!this.settings.enabled) orb.classList.add('hidden');
+    // Panel position via inline style for reliability
+    const panel = document.getElementById('assistant-panel');
+    if (panel) {
+      if (this.settings.position === 'left') {
+        panel.style.insetInlineStart = '1.5rem';
+        panel.style.insetInlineEnd = 'auto';
+      } else {
+        panel.style.insetInlineEnd = '1.5rem';
+        panel.style.insetInlineStart = 'auto';
+      }
+    }
   },
 
   lang() {

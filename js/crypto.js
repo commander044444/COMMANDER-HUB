@@ -10,9 +10,9 @@ const Crypto = {
   coinEmoji: {
     bitcoin: '₿', ethereum: 'Ξ', tether: '₮', binancecoin: '🟡',
     solana: '◎', ripple: '✕', cardano: '₳', dogecoin: 'Ð',
-    tron: '🔴', 'usd-coin': '💵', staked-ether: 'Ξ', 'the-open-network': '💎',
-    avalanche-2: '🔺', chainlink: '🔗', polkadot: '●', shiba-inu: '🐕',
-    litecoin: 'Ł', bitcoin-cash: '₿', uniswap: '🦄', stellar: '✦'
+    tron: '🔴', 'usd-coin': '💵', 'staked-ether': 'Ξ', 'the-open-network': '💎',
+    'avalanche-2': '🔺', chainlink: '🔗', polkadot: '●', 'shiba-inu': '🐕',
+    litecoin: 'Ł', 'bitcoin-cash': '₿', uniswap: '🦄', stellar: '✦'
   },
 
   async fetchTomanRate() {
@@ -168,7 +168,7 @@ const Crypto = {
       bitcoin: 'بیت‌کوین', ethereum: 'اتریوم', tether: 'تتر', binancecoin: 'بایننس‌کوین',
       solana: 'سولانا', ripple: 'ریپل', cardano: 'کاردانو', dogecoin: 'دوج‌کوین',
       tron: 'ترون', 'usd-coin': 'یو‌اس‌دی‌کوین', 'the-open-network': 'تون‌کوین',
-      avalanche-2: 'اولانچ', chainlink: 'چین‌لینک', polkadot: 'پولکادات',
+      'avalanche-2': 'اولانچ', chainlink: 'چین‌لینک', polkadot: 'پولکادات',
       'shiba-inu': 'شیبا', litecoin: 'لایت‌کوین', uniswap: 'یونی‌سواپ', stellar: 'استلار'
     };
     return map[c.id] || c.name;

@@ -782,6 +782,7 @@
 .assistant-orb {
   position: fixed;
   bottom: 1.5rem;
+  inset-inline-end: 1.5rem;
   width: 56px;
   height: 56px;
   border-radius: 50%;
