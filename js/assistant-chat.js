@@ -242,7 +242,31 @@ const AssistantChat = {
     box.querySelectorAll('.achat-chip').forEach(btn => {
       btn.addEventListener('click', () => this.runChip(btn.dataset.act));
     });
+    this.renderStickySuggestions();
     if (this.typing) this.showTyping();
+  },
+
+  renderStickySuggestions() {
+    const bar = document.getElementById('achat-suggestions');
+    if (!bar) return;
+    // آخرین پیام دستیار که suggestion دارد
+    let chips = null;
+    for (let i = this.messages.length - 1; i >= 0; i--) {
+      const m = this.messages[i];
+      if (m.role === 'assistant' && m.suggestions && m.suggestions.length) {
+        chips = m.suggestions;
+        break;
+      }
+    }
+    if (!chips || !chips.length) {
+      chips = this.defaultSuggestions();
+    }
+    bar.innerHTML = chips.map(s =>
+      `<button type="button" class="achat-chip sticky" data-act="${escapeAttr(s.action)}">${escapeHtml(s.label)}</button>`
+    ).join('');
+    bar.querySelectorAll('.achat-chip').forEach(btn => {
+      btn.addEventListener('click', () => this.runChip(btn.dataset.act));
+    });
   },
 
   fmtTime(ts) {
@@ -281,15 +305,16 @@ const AssistantChat = {
 
   classify(text) {
     const t = text.trim();
-    const low = t.toLowerCase();
-    if (/^(سلام|درود|هی|hello|hi|hey)\b/i.test(t) || /خوبی\??|how are you/i.test(t)) return 'greeting';
+    if (/^(سلام|درود|هی|hello|hi|hey)\b/i.test(t) || /^(خوبی|چطوری)\??$/i.test(t) || /how are you/i.test(t)) return 'greeting';
     if (/اسم پروژه چی بود|what was the (project )?name/i.test(t)) return 'memory';
     if (/منو ببر|باز کن|برو به|open |go to |navigate/i.test(t)) return 'navigate';
-    if (/google|گوگل|سرچ کن|search for/i.test(t)) return 'google';
-    if (/رستوران|نزدیک من|موقعیت|location|maps|مکان/i.test(t)) return 'location';
-    if (/راهنما|کمک|help|چطور|how (do|to)|settings دستیار/i.test(t)) return 'help';
+    if (/google|گوگل|سرچ کن|search for|جستجو کن/i.test(t)) return 'google';
+    if (/رستوران|نزدیک من|موقعیت|location|maps|مکان نزدیک/i.test(t)) return 'location';
+    if (/^(راهنما|کمک|help)\b/i.test(t) || /راهنمایی|کمک می‌خوام|how (do|to)/i.test(t)) return 'help';
     if (/هوا|آب\s*و\s*هوا|weather/i.test(t)) return 'weather';
-    if (t.length > 12 && !/^(ممنون|مرسی|ok|باشه|thanks)/i.test(t)) return 'search';
+    if (/^(ممنون|مرسی|ok|باشه|thanks|thank you)\.?$/i.test(t)) return 'chat';
+    // هر پیام غیرکوتاه = جست‌وجو/اطلاعات
+    if (t.length >= 2) return 'search';
     return 'chat';
   },
 

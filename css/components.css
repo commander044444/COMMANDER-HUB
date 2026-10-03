@@ -1130,3 +1130,35 @@ body.achat-open { overflow: hidden; }
 @media (max-width: 767px) {
   .achat-shell { width: 100%; border: none; }
 }
+
+#achat-suggestions.achat-suggestions,
+.achat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.15);
+  flex-shrink: 0;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.achat-chip.sticky {
+  background: rgba(70, 110, 255, 0.22);
+  border-color: rgba(120,160,255,0.45);
+  font-weight: 500;
+}
+.achat-actions {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+.achat-chip {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 2;
+}
